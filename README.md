@@ -176,5 +176,5 @@ These include:
 - FreeBSD
 - OpenWRT
 
-Currently converting the scripts for cloud images has the highest priority.
+Currently adding support for cloud images of Alma and Rocky has the highest priority.
 In case you think something is missing, please contact me or file an issue.
