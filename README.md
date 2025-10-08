@@ -102,6 +102,7 @@ How to use:
 1. Install the guest tools from E:/virtio-win-gt-x64.msi
 1. Enable RDP access
 
+After starting up, the script tries to read the MAC address specified from the arp cache and retrieve its IP address:
 
     Successfully started, use
     
