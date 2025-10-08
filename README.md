@@ -55,6 +55,10 @@ After starting up, the script tries to read the MAC address specified from the a
 
 ### quickdebuntu.sh
 
+> [!NOTE]
+> This script will probably not be updated for Ubuntu 26.04.
+> Virtual machines created with it will continue to work, but new bootstraps might not be possible.
+
 Create an Ubuntu or Debian VM from scratch with debootstrap.
 To work, a `debootstrap` with the needed scripts has to be installed.
 For example, Ubuntu Noble provides scripts to successfully bootstrap Ubuntu Jammy and Noble and Debian Bookworm and Trixie, but misses scripts for Devuan (Debian with SysV init).
