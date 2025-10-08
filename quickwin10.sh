@@ -159,8 +159,8 @@ if [ -n "$WINISO" ] ; then
     echo "When done, start again without the ISO file as parameter."
     qemu-system-x86_64 -enable-kvm -smp cpus="$CPUS" -m "$MEM" \
         -drive media=disk,index=0,file="${TARGETDIR}"/windows.qcow2,if=virtio,format=qcow2 \
-        -drive media=cdrom,index=1,file="${WINISO}",readonly \
-        -drive media=cdrom,index=2,file="${DRIVERS}",readonly \
+        -drive media=cdrom,index=1,file="${WINISO}",readonly=on \
+        -drive media=cdrom,index=2,file="${DRIVERS}",readonly=on \
         -boot d \
         -pidfile "${TARGETDIR}/qemu.pid" \
         -vnc "$VNC"
@@ -168,7 +168,7 @@ if [ -n "$WINISO" ] ; then
 else
     qemu-system-x86_64 -enable-kvm -smp cpus="$CPUS" -m "$MEM" \
         -drive media=disk,index=0,file="${TARGETDIR}"/windows.qcow2,if=virtio,format=qcow2 \
-        -drive media=cdrom,index=2,file="${DRIVERS}",readonly \
+        -drive media=cdrom,index=2,file="${DRIVERS}",readonly=on \
         -pidfile "${TARGETDIR}/qemu.pid" \
         $NET $EXTRAS $DAEMONIZE \
         -vnc "$VNC"
