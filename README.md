@@ -102,6 +102,7 @@ How to use:
 1. Install the guest tools from E:/virtio-win-gt-x64.msi
 1. Enable RDP access
 
+
     Successfully started, use
     
     vncviewer localhost:23
