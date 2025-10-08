@@ -30,6 +30,29 @@ Just reboot in case of messing it up.
 If no DHCP configuration is present, an example is emitted. 
 Just copy and paste it to `/etc/dhcp/dhcpd.conf` and `/etc/default/isc-dhcp-server` repspectively.
 
+### quickcloud.sh
+
+Create an Ubuntu or Debian VM from the respective's project cloud init images.
+The script creates a minimal seed ISO for cloud init that just sets the host name and adds the user's SSH key.
+You might overwrite with a more sophisticated seed image.
+Always the latest cloud image for the chosen distribution will be downloaded.
+
+1. Create a directory for the VM to live in
+1. Copy the configuration `quickcloud_config.sh` to the target directory and adjust according to your needs
+1. Start the VM as non-root user: `./quickcloud.sh /path/to/targetdir`
+
+After starting up, the script tries to read the MAC address specified from the arp cache and retrieve its IP address:
+
+    Successfully started, use
+    
+    vncviewer localhost:23
+    
+    to see the system console.
+    Waiting 15 seconds for the MAC to appear...
+    You should now be able to run
+    
+    ssh debian@198.51.100.112
+
 ### quickdebuntu.sh
 
 Create an Ubuntu or Debian VM from scratch with debootstrap.
