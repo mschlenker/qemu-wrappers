@@ -53,6 +53,31 @@ After starting up, the script tries to read the MAC address specified from the a
     
     ssh debian@198.51.100.112
 
+### quickanylinux.sh
+
+First run with an arbitrary install ISO as parameter, this allows to install any modern Linux in a Qemu/KVM.
+The ISO passed can be a http:// URL.
+Qemu will then download needed chunks of that ISO.
+When the installation is finished, run without passing an ISO.
+
+1. Create a directory for the VM to live in
+1. Copy the configuration `quickanylinuy_config.sh` to the target directory and adjust according to your needs
+1. Start the VM as non-root user: `./quickanylinux.sh /path/to/targetdir http://distro.test/install.iso`
+1. After installation is done, shut down
+1. Start again without passing the ISO: `./quickanylinux.sh /path/to/targetdir`
+
+After starting up, the script tries to read the MAC address specified from the arp cache and retrieve its IP address:
+
+    Successfully started, use
+    
+    vncviewer localhost:23
+    
+    to see the system console.
+    Waiting 15 seconds for the MAC to appear...
+    You should now be able to run
+    
+    ssh username@198.51.100.113
+
 ### quickdebuntu.sh
 
 > [!NOTE]
@@ -146,7 +171,6 @@ After starting up, the script tries to read the MAC address specified from the a
 I have other scripts that I need to convert to align with the config format used here.
 These include:
 
-- Running cloud init images (AlmaLinux, Debian, Ubuntu)
 - Desinfec't in USB stick mode
 - Solaris x86_64
 - FreeBSD
