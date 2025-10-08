@@ -83,3 +83,45 @@ After starting up, the script tries to read the MAC address specified from the a
     You should now be able to access the appliance in the browser:
     
     http://198.51.100.205/
+
+### quickwin10.sh
+
+Install and run Windows 10 or Windows Server 2019 or similar in Qemu/KVM.
+This scripts works only for older Windows versions that can be booted via classic BIOS from MBR partitioned disks.
+The script has an "installation mode" without networking and a "run mode" with networking.
+Fedora virtio drivers are mounted as HTTP image (requires Qemu 8.2, for older versions, a local file can be specified).
+
+How to use:
+
+1. Create a directory for the VM to live in
+1. Copy the configuration `quickwin10_config.sh` to the target directory and adjust according to your needs
+1. Start the VM as non-root user: `./quickcmkvirt.sh /path/to/targetdir /path/to/win10.iso`
+1. Make sure to select the virtio disk drivers from E:/amd64
+1. Finish the installation, then shutdown: `shutdown.exe /s /t 0`
+1. Start again without specifying the ISO: `./quickcmkvirt.sh /path/to/targetdir`
+1. Install the guest tools from E:/virtio-win-gt-x64.msi
+1. Enable RDP access
+
+    Successfully started, use
+    
+    vncviewer localhost:23
+    
+    to see the system console.
+    Waiting 30 seconds for the MAC to appear...
+    If you have configured RDP, you now should be able to access your Windows:
+    
+    198.51.100.105
+
+## TODO
+
+I have other scripts that I need to convert to align with the config format used here.
+These include:
+
+- Running cloud init images (AlmaLinux, Debian, Ubuntu)
+- Desinfec't in USB stick mode
+- Solaris x86_64
+- FreeBSD
+- OpenWRT
+
+Currently converting the scripts for cloud images has the highest priority.
+In case you think something is missing, please contact me or file an issue.
