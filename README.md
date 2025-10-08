@@ -95,7 +95,7 @@ How to use:
 
 1. Create a directory for the VM to live in
 1. Copy the configuration `quickwin10_config.sh` to the target directory and adjust according to your needs
-1. Start the VM as non-root user: `./quickcmkvirt.sh /path/to/targetdir /path/to/win10.iso`
+1. Start the VM as non-root user: `./quickwin10.sh /path/to/targetdir /path/to/win10.iso`
 1. Make sure to select the virtio disk drivers from E:/amd64
 1. Finish the installation, then shutdown: `shutdown.exe /s /t 0`
 1. Start again without specifying the ISO: `./quickcmkvirt.sh /path/to/targetdir`
