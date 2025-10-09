@@ -32,10 +32,12 @@ Just copy and paste it to `/etc/dhcp/dhcpd.conf` and `/etc/default/isc-dhcp-serv
 
 ### quickcloud.sh
 
-Create an Ubuntu or Debian VM from the respective's project cloud init images.
+Create an AlmaLinux, Debian, Rocky or Ubuntu VM from the respective's project cloud init images.
 The script creates a minimal seed ISO for cloud init that just sets the host name and adds the user's SSH key.
 You might overwrite with a more sophisticated seed image.
 Always the latest cloud image for the chosen distribution will be downloaded.
+Images are snapshotted before running, so when you need multiple VMs, you can copy the image and reset the snapshot.
+When the MAC address is identified from the arp cache, you are automatically logged in.
 
 1. Create a directory for the VM to live in
 1. Copy the configuration `quickcloud_config.sh` to the target directory and adjust according to your needs
@@ -49,9 +51,11 @@ After starting up, the script tries to read the MAC address specified from the a
     
     to see the system console.
     Waiting 15 seconds for the MAC to appear...
-    You should now be able to run
+    Trying to log in... rocky@198.51.100.118
     
-    ssh debian@198.51.100.112
+    Last login: Thu Oct  9 10:58:50 2025 from 198.51.100.1
+    rocky@localhost ~$
+
 
 ### quickanylinux.sh
 
