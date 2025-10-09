@@ -124,7 +124,7 @@ fi
 
 # Create the network settings:
 if [ -n "$TAPDEV" ] ; then
-    if ip a show dev "$TAPDEV" ; then
+    if ip link show dev "$TAPDEV" ; then
         echo "Found ${TAPDEV}, you probably will have proper networking..." 
     else
         echo ""

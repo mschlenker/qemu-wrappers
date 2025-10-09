@@ -168,14 +168,22 @@ else
 fi
 
 # Check for the snapshot or create one:
-snapfound=0
+# We use the file .snapshotted to indicate a disk image has been successfully snapshotted before.
+# So we do not have to access a disk in case it is blocked by a running Qemu process.
 if [ -n "$SNAPSHOT" ] ; then
-    qemu-img snapshot -l "${TARGETDIR}/disk.qcow2" | grep -e '^[0-9]' | awk '{print $2}' | while read snapname ; do
-        [ "$snapname" = "$SNAPSHOT" ] && snapfound=1
-    done
+    snapfound=0
+    [ -f "${TARGETDIR}/.snapshotted" ] && snapfound=1
+    if [ "$snapfound" -lt 1 ] ; then
+        qemu-img snapshot -l "${TARGETDIR}/disk.qcow2" | grep -e '^[0-9]' | awk '{print $2}' | while read snapname ; do
+            if [ "$snapname" = "$SNAPSHOT" ] ; then 
+                snapfound=1
+                touch "${TARGETDIR}/.snapshotted"
+            fi
+        done
+    fi
     if [ "$snapfound" -lt 1 ] ; then
         echo "Creating snapshot: $SNAPSHOT"
-        qemu-img snapshot -c "$SNAPSHOT" "${TARGETDIR}/disk.qcow2"
+        qemu-img snapshot -c "$SNAPSHOT" "${TARGETDIR}/disk.qcow2" && touch "${TARGETDIR}/.snapshotted"
     fi
 fi
 
@@ -188,7 +196,7 @@ for f in OVMF_VARS_4M.fd OVMF_CODE_4M.fd ; do
         retval="$?"
         if [ "$retval" -gt 0 ] ; then
             echo "Could not find OVMF files, you might want to install the package ovmf or"
-            echo "manually place OVMF_VARS.fd and OVMF_CODE.fd in ${TARGETDIR}"
+            echo "manually place OVMF_VARS_4M.fd and OVMF_CODE_4M.fd in ${TARGETDIR}"
             exit 1
         fi
     fi
@@ -196,7 +204,7 @@ done
 
 # Create the network settings and run:
 if [ -n "$TAPDEV" ] ; then
-    if ip a show dev "$TAPDEV" ; then
+    if ip link show dev "$TAPDEV" ; then
         echo "Found ${TAPDEV}, you probably will have proper networking..." 
     else
         echo ""
@@ -258,8 +266,17 @@ if [ "$retval" -lt 1 ] ; then
             echo ""
         fi
     fi
-        
-else 	
+elif [ -n "$MAC" -a "$SKIPARP" -lt 1 -a "$LOGMEIN" -gt 0 ] ; then
+    IPV4=` ip n | grep "${MAC}" | awk '{print $1}'` 
+    if [ -n "$IPV4" ] && ping -c 1 "$IPV4" ; then
+        echo ""
+        ssh "${DISTRO}@${IPV4}"
+    else
+        echo ""
+        echo "Ooopsi."
+        echo "Start failed, please investigate."
+    fi
+else
     echo ""
     echo "Ooopsi."
     echo "Start failed, please check your configuration."

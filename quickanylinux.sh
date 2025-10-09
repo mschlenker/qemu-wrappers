@@ -112,7 +112,6 @@ else
 fi
 
 # Copy the OVMF files:
-
 for f in OVMF_VARS_4M.fd OVMF_CODE_4M.fd ; do
     if [ -f "${TARGETDIR}/${f}" ] ; then
         echo "Found ${TARGETDIR}/${f}"
@@ -121,7 +120,7 @@ for f in OVMF_VARS_4M.fd OVMF_CODE_4M.fd ; do
         retval="$?"
         if [ "$retval" -gt 0 ] ; then
             echo "Could not find OVMF files, you might want to install the package ovmf or"
-            echo "manually place OVMF_VARS.fd and OVMF_CODE.fd in ${TARGETDIR}"
+            echo "manually place OVMF_VARS_4M.fd and OVMF_CODE_4M.fd in ${TARGETDIR}"
             exit 1
         fi
     fi
@@ -129,7 +128,7 @@ done
 
 # Create the network settings and run:
 if [ -n "$TAPDEV" ] ; then
-    if ip a show dev "$TAPDEV" ; then
+    if ip link show dev "$TAPDEV" ; then
         echo "Found ${TAPDEV}, you probably will have proper networking..." 
     else
         echo ""

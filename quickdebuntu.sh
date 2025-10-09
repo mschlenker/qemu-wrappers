@@ -400,7 +400,7 @@ fi
 
 # Create the network settings and run:
 if [ -n "$TAPDEV" ] ; then
-    if ip a show dev "$TAPDEV" ; then
+    if ip link show dev "$TAPDEV" ; then
         echo "Found ${TAPDEV}, you probably will have proper networking..." 
     else
         echo ""
@@ -433,11 +433,11 @@ qemu-system-x86_64 -enable-kvm -smp cpus="$CPUS" -m "$MEM" -drive \
 	-vnc "$VNC"
 retval="$?"
 if [ "$retval" -lt 1 ] ; then
-	echo "Successfully started, use"
-	echo ""
-	echo "    vncviewer localhost${VNC}"
-	echo ""
-	echo "to see the system console."
+    echo "Successfully started, use"
+    echo ""
+    echo "    vncviewer localhost${VNC}"
+    echo ""
+    echo "to see the system console."
     if [ -n "$MAC" -a "$SKIPARP" -lt 1 ] ; then
         echo "Waiting $MACWAIT seconds for the MAC to appear..."
         sleep $MACWAIT
@@ -455,6 +455,16 @@ if [ "$retval" -lt 1 ] ; then
             echo "    ssh root@${IPV4}"
             echo ""
         fi
+    fi
+elif [ -n "$MAC" -a "$SKIPARP" -lt 1 -a "$LOGMEIN" -gt 0 ] ; then
+    IPV4=` ip n | grep "${MAC}" | awk '{print $1}'` 
+    if [ -n "$IPV4" ] && ping -c 1 "$IPV4" ; then
+        echo ""
+        ssh "root@${IPV4}"
+    else
+        echo ""
+        echo "Ooopsi."
+        echo "Start failed, please investigate."
     fi
 else
     echo ""
