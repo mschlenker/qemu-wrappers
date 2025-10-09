@@ -8,8 +8,8 @@
 
 # Parameters for setting up the image:
 
-DISTRO="ubuntu" # Currently must be one of ubuntu/debian
-VERSION="noble" # Can be any supported, tested only with noble/jammy and trixie/bookworm so far
+DISTRO="ubuntu" # Currently must be one of almalinux/debian/rocky/ubuntu
+VERSION="noble" # Can be any supported, names (lower case) for debian/ubuntu, numbers for almalinux/rocky
 SSHKEYS="/home/${USER}/.ssh/id_ed25519.pub"
 RESIZE=32 # Resize to 32 G
 HOSTNAME="cloud"
@@ -31,8 +31,8 @@ LOGMEIN=1 # Login via SSH instead of showing the command to login
 TAPDEV="vmtap1"
 # You might specify a MAC address, for example generated with randmac:
 # MAC="b2:d5:18:8d:01:7b"
-# If no MAC is specified, one is created from the $HOSTNAME and appended to the config:
-# MAC="00:08:25:"`echo $HOSTNAME | md5sum | awk -F '' '{print $1$2":"$3$4":"$5$6}'`
+# If no MAC is specified, one is created from the name of $TARGETDIR and appended to the config:
+# MAC="00:08:25:"`echo $TARGETDIR | md5sum | awk -F '' '{print $1$2":"$3$4":"$5$6}'`
 MACWAIT=15 # How many seconds to wait for the MAC to appear to ip n command.
 
 # If you are an advanced user, you can specify the network parameters directly. For example a very
