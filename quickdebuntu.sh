@@ -446,6 +446,8 @@ if [ "$retval" -lt 1 ] ; then
         if [ -z "$IPV4" ] ; then
             echo "Could not find IPv4 address, please investigate..."
         elif [ "$LOGMEIN" -gt 0 ] ; then
+            echo "Trying to log in... root@${IPV4}"
+            echo ""
             ssh "root@${IPV4}"
         else
             echo "You should now be able to run"
