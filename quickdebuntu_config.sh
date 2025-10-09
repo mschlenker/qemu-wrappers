@@ -40,6 +40,7 @@ CPUS=2
 MEM=2048
 VNC=":23"
 DAEMONIZE="-daemonize" # set to empty string to run in foreground
+LOGMEIN=1 # Login via SSH instead of showing the command to login
 
 # Networking parameters, simple:
 

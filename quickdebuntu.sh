@@ -41,6 +41,7 @@ CPUS=2
 MEM=2048
 VNC=":23"
 DAEMONIZE="-daemonize" # set to empty string to run in foreground
+LOGMEIN=1 # Login via SSH instead of showing the command to login
 
 # Networking parameters, simple:
 
@@ -444,6 +445,8 @@ if [ "$retval" -lt 1 ] ; then
         IPV4=` ip n | grep "${MAC}" | awk '{print $1}'` 
         if [ -z "$IPV4" ] ; then
             echo "Could not find IPv4 address, please investigate..."
+        elif [ "$LOGMEIN" -gt 0 ] ; then
+            ssh "root@${IPV4}"
         else
             echo "You should now be able to run"
             echo ""
@@ -451,9 +454,8 @@ if [ "$retval" -lt 1 ] ; then
             echo ""
         fi
     fi
-        
-else 	
-	echo ""
-	echo "Ooopsi."
-	echo "Start failed, please check your configuration."
+else
+    echo ""
+    echo "Ooopsi."
+    echo "Start failed, please check your configuration."
 fi
