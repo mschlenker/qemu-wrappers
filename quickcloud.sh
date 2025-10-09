@@ -22,6 +22,7 @@ CPUS=2
 MEM=4096
 VNC=":23"
 DAEMONIZE="-daemonize" # set to empty string to run in foreground
+LOGMEIN=1 # Login via SSH instead of showing the command to login
 
 # Networking parameters, simple:
 
@@ -53,6 +54,7 @@ MAC=""
 NET=""
 TARGETDIR="$1"
 SEED=""
+SNAPSHOT="_fresh_image"
 
 if [ -z "$TARGETDIR" ] ; then 
     echo "Please specify a target directory as first argument to this script."
@@ -111,7 +113,9 @@ if [ -z "$SEED" ] ; then
     else
         mkdir "${TARGETDIR}/.seed"
         touch "${TARGETDIR}/.seed/meta-data"
-        touch "${TARGETDIR}/.seed/network-data"
+        if [ "$DISTRO" = debian -o "$DISTRO" = ubuntu ] ; then
+            touch "${TARGETDIR}/.seed/network-data"
+        fi
         echo '#cloud-config' > "${TARGETDIR}/.seed/user-data"
         echo "hostname: ${HOSTNAME}" >> "${TARGETDIR}/.seed/user-data"
         echo "create_hostname_file: true" >> "${TARGETDIR}/.seed/user-data"
@@ -121,7 +125,7 @@ if [ -z "$SEED" ] ; then
             echo -n '  - ' >> "${TARGETDIR}/.seed/user-data"
             echo "$k" >> "${TARGETDIR}/.seed/user-data"
         done
-        xorriso -as mkisofs -joliet -V cidata -o "${TARGETDIR}/seed.iso" -r "${TARGETDIR}/.seed"
+        xorriso -as mkisofs -joliet -V CIDATA -o "${TARGETDIR}/seed.iso" -r "${TARGETDIR}/.seed"
     fi
     SEED="${TARGETDIR}/seed.iso"
 fi
@@ -132,8 +136,8 @@ if [ -f "${TARGETDIR}/disk.qcow2" ] ; then
     echo "Found ${TARGETDIR}/disk.qcow2..."
 else
     case $DISTRO in
-        ubuntu)
-            URL="https://cloud-images.ubuntu.com/${VERSION}/current/${VERSION}-server-cloudimg-amd64.img"
+        almalinux)
+            URL="https://repo.almalinux.org/almalinux/${VERSION}/cloud/x86_64/images/AlmaLinux-${VERSION}-GenericCloud-latest.x86_64.qcow2"
         ;;
         debian)
             NUM=13
@@ -142,8 +146,15 @@ else
             [ "$VERSION" = "bullseye" ] && NUM=11
             URL="https://cdimage.debian.org/images/cloud/${VERSION}/latest/debian-${NUM}-generic-amd64.qcow2"
         ;;
+        rocky)
+            URL="http://dl.rockylinux.org/pub/rocky/${VERSION}/images/x86_64/Rocky-${VERSION}-GenericCloud-Base.latest.x86_64.qcow2"
+        ;;
+        ubuntu)
+            URL="https://cloud-images.ubuntu.com/${VERSION}/current/${VERSION}-server-cloudimg-amd64.img"
+        ;;
         *)
-            echo "Unsupported distro ${DISTRO}. Exiting."
+            echo "Unsupported distro ${DISTRO}. Allowed: debian, rocky, ubuntu."
+            echo "Exiting."
             exit 1
         ;;
     esac
@@ -156,8 +167,19 @@ else
     qemu-img resize "${TARGETDIR}/disk.qcow2" "${RESIZE}G"
 fi
 
-# Copy the OVMF files:
+# Check for the snapshot or create one:
+snapfound=0
+if [ -n "$SNAPSHOT" ] ; then
+    qemu-img snapshot -l "${TARGETDIR}/disk.qcow2" | grep -e '^[0-9]' | awk '{print $2}' | while read snapname ; do
+        [ "$snapname" = "$SNAPSHOT" ] && snapfound=1
+    done
+    if [ "$snapfound" -lt 1 ] ; then
+        echo "Creating snapshot: $SNAPSHOT"
+        qemu-img snapshot -c "$SNAPSHOT" "${TARGETDIR}/disk.qcow2"
+    fi
+fi
 
+# Copy the OVMF files:
 for f in OVMF_VARS_4M.fd OVMF_CODE_4M.fd ; do
     if [ -f "${TARGETDIR}/${f}" ] ; then
         echo "Found ${TARGETDIR}/${f}"
@@ -189,10 +211,10 @@ fi
 SKIPARP=0
 [ -n "$NET" ] && SKIPARP=1
 
-# Calculate a MAC address from the hostname if none has been given:
+# Calculate a MAC address from the target directory if none has been given:
 if [ -z "$MAC" ] ; then
-    MAC="00:08:25:"`echo "$HOSTNAME" | md5sum | awk -F '' '{print $1$2":"$3$4":"$5$6}'`
-    # echo "MAC=\"$MAC\"" >> "${TARGETDIR}/${CFG}"
+    MAC="00:08:25:"`echo "$TARGETDIR" | md5sum | awk -F '' '{print $1$2":"$3$4":"$5$6}'`
+    echo "MAC=\"$MAC\"" >> "${TARGETDIR}/${CFG}"
 fi
 
 # Create a NET variable unless already specified:
@@ -202,7 +224,7 @@ elif [ -z "$NET" ] ; then
     NET="-net nic,model=e1000 -net user,hostfwd=tcp::8000-:80,hostfwd=tcp::2222-:22"
 fi
 
-qemu-system-x86_64 -enable-kvm -smp cpus="$CPUS" -m "$MEM" \
+qemu-system-x86_64 -enable-kvm -cpu host -smp cpus="$CPUS" -m "$MEM" \
     -drive file="${TARGETDIR}/OVMF_CODE_4M.fd",if=pflash,format=raw,readonly=on \
     -drive file="${TARGETDIR}/OVMF_VARS_4M.fd",if=pflash,format=raw \
     -drive file="${TARGETDIR}/disk.qcow2",if=virtio,format=qcow2 \
@@ -225,6 +247,8 @@ if [ "$retval" -lt 1 ] ; then
         IPV4=` ip n | grep "${MAC}" | awk '{print $1}'` 
         if [ -z "$IPV4" ] ; then
             echo "Could not find IPv4 address, you might need to adjust the network configuration in the console."
+        elif [ "$LOGMEIN" -gt 0 ] ; then
+            ssh "${DISTRO}@${IPV4}"
         else
             echo "You should now be able to run"
             echo ""
