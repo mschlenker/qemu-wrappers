@@ -71,7 +71,7 @@ fi
 
 # Check prerequisites:
 
-neededtools="qemu-img qemu-system-x86_64"
+neededtools="qemu-img qemu-system-x86_64 remmina"
 for tool in $neededtools ; do
     if which $tool > /dev/null ; then
         echo "Found: $tool"
@@ -175,7 +175,7 @@ fi
 if [ -n "$WINISO" ] ; then
     # Run in installation mode:
     echo "Running in installation mode without networking and with drivers attached."
-    echo "Connect via VNC to localhost:${VNC} to finish installation, then shutdown."
+    echo "You will be connected to localhost${VNC} to finish installation. Then shutdown."
     echo "When done, start again without the ISO file as parameter."
     qemu-system-x86_64 -enable-kvm -smp cpus="$CPUS" -m "$MEM" \
         -drive media=disk,index=0,file="${TARGETDIR}"/windows.qcow2,if=virtio,format=qcow2 \
@@ -185,6 +185,8 @@ if [ -n "$WINISO" ] ; then
         -pidfile "${TARGETDIR}/qemu.pid" \
         -vnc "$VNC" \
         -usb -usbdevice tablet -k "$KEYBOARD"
+        sleep 1
+        remmina -c vnc://localhost"${VNC}"
     exit 0
 else
     qemu-system-x86_64 -enable-kvm -smp cpus="$CPUS" -m "$MEM" \
