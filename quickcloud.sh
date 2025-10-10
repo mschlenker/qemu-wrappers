@@ -110,7 +110,7 @@ fi
 
 # Find an unused tap device:
 idx=0
-while [ -z "$TAPDEV" -a "$idx" -lt 10 ] ; do
+while [ -z "$TAPDEV" -a -z "$NET" -a "$idx" -lt 10 ] ; do
     if ip link show dev "vmtap${idx}" | grep 'state DOWN' ; then
         TAPDEV="vmtap${idx}"
     fi
@@ -145,6 +145,31 @@ if [ -z "$SEED" ] ; then
             echo -n '  - ' >> "${TARGETDIR}/.seed/user-data"
             echo "$k" >> "${TARGETDIR}/.seed/user-data"
         done
+        if [ "$DISTRO" = debian -o "$DISTRO" = ubuntu ] && [ -n "$DEB" ] ; then
+            # Add the update command:
+            echo 'package_update: true' >> "${TARGETDIR}/.seed/user-data"
+            echo 'package_upgrade: true' >> "${TARGETDIR}/.seed/user-data"
+            # Download the deb:
+            mkdir "${TARGETDIR}/.seed/sw"
+            if [ -f "$DEB" ] ; then
+                cp -v "$DEB" "${TARGETDIR}/.seed/sw/deb.deb"
+            else
+                wget -O "${TARGETDIR}/.seed/sw/deb.deb" "$DEB"
+            fi
+            echo 'runcmd:' >> "${TARGETDIR}/.seed/user-data"
+            echo '  - mkdir /media/sw' >> "${TARGETDIR}/.seed/user-data"
+            echo '  - mount /dev/sr0 /media/sw' >> "${TARGETDIR}/.seed/user-data"
+            echo '  - apt install -y /media/sw/sw/deb.deb > /run/install.log' >> "${TARGETDIR}/.seed/user-data"
+            echo '  - echo Done. >> /run/install.log' >> "${TARGETDIR}/.seed/user-data"
+            echo '  - umount /media/sw' >> "${TARGETDIR}/.seed/user-data"
+            echo '  - rmdir /media/sw' >> "${TARGETDIR}/.seed/user-data"
+            # This is Checkmk specific stuff:
+            if [ -n "$CMKSITE" -a -n "$CMKPASS" ] ; then
+                echo "  - omd create --admin-password '$CMKPASS' $CMKSITE" >> "${TARGETDIR}/.seed/user-data"
+                echo "  - omd start $CMKSITE" >> "${TARGETDIR}/.seed/user-data"
+                echo "  - systemctl restart apache2" >> "${TARGETDIR}/.seed/user-data"
+            fi
+        fi
         xorriso -as mkisofs -joliet -V CIDATA -o "${TARGETDIR}/seed.iso" -r "${TARGETDIR}/.seed"
     fi
     SEED="${TARGETDIR}/seed.iso"
