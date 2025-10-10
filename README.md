@@ -173,6 +173,11 @@ After starting up, the script tries to read the MAC address specified from the a
     
     198.51.100.105
 
+### quickwin11.sh
+
+Have a look at the script and choose wisely whether you want to use it.
+Tested with Windows Server 2025.
+
 ## TODO
 
 I have other scripts that I need to convert to align with the config format used here.
