@@ -116,6 +116,23 @@ else
     exit 1
 fi
 
+# Find an unused tap device:
+idx=0
+while [ -z "$TAPDEV" -a -z "$NET" -a "$idx" -lt 10 ] ; do
+    if ip link show dev "vmtap${idx}" | grep 'state DOWN' ; then
+        TAPDEV="vmtap${idx}"
+    fi
+    idx=$(( $idx + 1 ))
+done
+if [ -z "$TAPDEV" ] ; then
+    echo "Could not find a free tap device to connect to. Make sure that devices exist."
+    echo "For example you can create them with sudo ./dummybridge.sh."
+    exit 1
+fi
+
+# Create a random VNC port number:
+[ -z "$VNC" ] && VNC=":$((100 + $RANDOM % 1000))"
+
 if [ -n "$PKGCACHE" ]; then
 	if [ -n "$UBUEDITION" ] ; then
 		mkdir -p "${PKGCACHE}/ubuntu/archives"

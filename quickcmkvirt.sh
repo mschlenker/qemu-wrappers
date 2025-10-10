@@ -10,14 +10,16 @@
 
 CPUS=2
 MEM=4096
-VNC=":23"
+# If you set VNC to an empty string, it will use a random port between 10 and 99
+VNC=""
 DAEMONIZE="-daemonize" # set to empty string to run in foreground
 
 # Networking parameters, simple:
 
 # Default networking requires the dummybridge script being run in advance, thus the vmtap
 # interfaces are available and owned by the user running the script.
-TAPDEV="vmtap1"
+# Set to an empty string to automatically probe devices from vmtap0 to vmtap9
+TAPDEV=""
 # You might specify a MAC address, for example generated with randmac:
 # MAC="b2:d5:18:8d:01:7b"
 # If no MAC is specified, one is created from the name of $TARGETDIR and appended to the config:
@@ -94,6 +96,23 @@ else
     echo "target directory, adjust it and try again."
     exit 1
 fi
+
+# Find an unused tap device:
+idx=0
+while [ -z "$TAPDEV" -a -z "$NET" -a "$idx" -lt 10 ] ; do
+    if ip link show dev "vmtap${idx}" | grep 'state DOWN' ; then
+        TAPDEV="vmtap${idx}"
+    fi
+    idx=$(( $idx + 1 ))
+done
+if [ -z "$TAPDEV" ] ; then
+    echo "Could not find a free tap device to connect to. Make sure that devices exist."
+    echo "For example you can create them with sudo ./dummybridge.sh."
+    exit 1
+fi
+
+# Create a random VNC port number:
+[ -z "$VNC" ] && VNC=":$((10 + $RANDOM % 90))"
 
 # If no ova archive is supplied search one in the target directory
 if [ -z "$OVA" ] ; then 

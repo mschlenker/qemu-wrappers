@@ -39,6 +39,8 @@ Always the latest cloud image for the chosen distribution will be downloaded.
 Images are snapshotted before running, so when you need multiple VMs, you can copy the image and reset the snapshot.
 When the MAC address is identified from the arp cache, you are automatically logged in.
 
+In case you are running this script for a VM that is already running, the script will try to connect via SSH.
+
 1. Create a directory for the VM to live in
 1. Copy the configuration `quickcloud_config.sh` to the target directory and adjust according to your needs
 1. Start the VM as non-root user: `./quickcloud.sh /path/to/targetdir`
