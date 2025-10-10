@@ -28,7 +28,8 @@ LOGMEIN=1 # Login via SSH instead of showing the command to login
 
 # Default networking requires the dummybridge script being run in advance, thus the vmtap
 # interfaces are available and owned by the user running the script.
-TAPDEV="vmtap1"
+# Set to an empty string to automatically probe devices from vmtap0 to vmtap9
+TAPDEV=""
 # You might specify a MAC address, for example generated with randmac:
 # MAC="b2:d5:18:8d:01:7b"
 # If no MAC is specified, one is created from the name of $TARGETDIR and appended to the config:

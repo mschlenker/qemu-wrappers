@@ -20,7 +20,8 @@ HOSTNAME="cloud"
 
 CPUS=2
 MEM=4096
-VNC=":23"
+# If you set VNC to an empty string, it will use a random port between 100 and 1099
+VNC=""
 DAEMONIZE="-daemonize" # set to empty string to run in foreground
 LOGMEIN=1 # Login via SSH instead of showing the command to login
 
@@ -28,7 +29,8 @@ LOGMEIN=1 # Login via SSH instead of showing the command to login
 
 # Default networking requires the dummybridge script being run in advance, thus the vmtap
 # interfaces are available and owned by the user running the script.
-TAPDEV="vmtap1"
+# Set to an empty string to automatically probe devices from vmtap0 to vmtap9
+TAPDEV=""
 # You might specify a MAC address, for example generated with randmac:
 # MAC="b2:d5:18:8d:01:7b"
 # If no MAC is specified, one is created from the name of $TARGETDIR and appended to the config:
@@ -106,11 +108,29 @@ else
     exit 1
 fi
 
+# Find an unused tap device:
+idx=0
+while [ -z "$TAPDEV" -a "$idx" -lt 10 ] ; do
+    if ip link show dev "vmtap${idx}" | grep 'state DOWN' ; then
+        TAPDEV="vmtap${idx}"
+    fi
+    idx=$(( $idx + 1 ))
+done
+if [ -z "$TAPDEV" ] ; then
+    echo "Could not find a free tap device to connect to. Make sure that devices exist."
+    echo "For example you can create them with sudo ./dummybridge.sh."
+    exit 1
+fi
+
+# Create a random VNC port number:
+[ -z "$VNC" ] && VNC=":$((100 + $RANDOM % 1000))"
+
 # If no seed image is specified and no seed image is found, create one:
 if [ -z "$SEED" ] ; then
     if [ -f "${TARGETDIR}/seed.iso" ] ; then
         echo "Found ${TARGETDIR}/seed.iso..."
     else
+        echo "Creating seed.iso..."
         mkdir "${TARGETDIR}/.seed"
         touch "${TARGETDIR}/.seed/meta-data"
         if [ "$DISTRO" = debian -o "$DISTRO" = ubuntu ] ; then
@@ -153,7 +173,7 @@ else
             URL="https://cloud-images.ubuntu.com/${VERSION}/current/${VERSION}-server-cloudimg-amd64.img"
         ;;
         *)
-            echo "Unsupported distro ${DISTRO}. Allowed: debian, rocky, ubuntu."
+            echo "Unsupported distro ${DISTRO}. Allowed: almalinux, debian, rocky, ubuntu."
             echo "Exiting."
             exit 1
         ;;
@@ -270,7 +290,7 @@ elif [ -n "$MAC" -a "$SKIPARP" -lt 1 -a "$LOGMEIN" -gt 0 ] ; then
     IPV4=` ip n | grep "${MAC}" | awk '{print $1}'` 
     if [ -n "$IPV4" ] && ping -c 1 "$IPV4" ; then
         echo ""
-        ssh "${DISTRO}@${IPV4}"
+        exec ssh "${DISTRO}@${IPV4}"
     else
         echo ""
         echo "Ooopsi."
