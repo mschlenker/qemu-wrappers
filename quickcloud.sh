@@ -48,6 +48,10 @@ MACWAIT=15 # How many seconds to wait for the MAC to appear to ip n command.
 # Or you can specify  different device models, down scripts or multiple interfaces:
 # NET="-device virtio-net-pci,netdev=network3,mac=00:16:17:12:ac:ae -netdev tap,id=network3,ifname=vmtap1,script=no,downscript=no"
 
+# A single folder that will be exported using 9p - you might need to adjust the /etc/fstab
+# after the first boot:
+SHAREDFOLDER="" 
+
 EXTRAS="" # add additional CLI parameters
 
 ####################### SNIP HERE ############################################
@@ -125,6 +129,12 @@ fi
 # Create a random VNC port number:
 [ -z "$VNC" ] && VNC=":$((100 + $RANDOM % 1000))"
 
+ninepfs=""
+# Check whether shared folder is requested and create 9pfs command line accordingly:
+if [ -n "$SHAREDFOLDER" -a -d "$SHAREDFOLDER" ] ; then
+    ninepfs="-virtfs local,path=${SHAREDFOLDER},mount_tag=shared,security_model=none"
+fi
+
 # If no seed image is specified and no seed image is found, create one:
 if [ -z "$SEED" ] ; then
     if [ -f "${TARGETDIR}/seed.iso" ] ; then
@@ -145,6 +155,11 @@ if [ -z "$SEED" ] ; then
             echo -n '  - ' >> "${TARGETDIR}/.seed/user-data"
             echo "$k" >> "${TARGETDIR}/.seed/user-data"
         done
+        if [ -n "$ninepfs" ] ; then
+            echo 'mounts:' >> "${TARGETDIR}/.seed/user-data"
+            echo '  - [ shared, /media/shared, "9p", "defaults", "0", "2" ]' >> "${TARGETDIR}/.seed/user-data"
+            # echo 'mount_default_fields: [None, None, auto, "defaults,nofail", "0", "2"]' >> "${TARGETDIR}/.seed/user-data"
+        fi
         if [ "$DISTRO" = debian -o "$DISTRO" = ubuntu ] && [ -n "$DEB" ] ; then
             # Add the update command:
             echo 'package_update: true' >> "${TARGETDIR}/.seed/user-data"
@@ -283,7 +298,7 @@ qemu-system-x86_64 -enable-kvm -cpu host -smp cpus="$CPUS" -m "$MEM" \
     -drive file="${TARGETDIR}/disk.qcow2",if=virtio,format=qcow2 \
     -drive file="${SEED}",index=1,media=cdrom,readonly=on \
     -pidfile "${TARGETDIR}/qemu.pid" \
-    $NET $DAEMONIZE $EXTRAS \
+    $NET $DAEMONIZE $EXTRAS $ninepfs \
     -vnc "$VNC"
 
 retval="$?"

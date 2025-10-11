@@ -47,4 +47,8 @@ MACWAIT=15 # How many seconds to wait for the MAC to appear to ip n command.
 # Or you can specify  different device models, down scripts or multiple interfaces:
 # NET="-device virtio-net-pci,netdev=network3,mac=00:16:17:12:ac:ae -netdev tap,id=network3,ifname=vmtap1,script=no,downscript=no"
 
+# A single folder that will be exported using 9p - you might need to adjust the /etc/fstab
+# after the first boot:
+SHAREDFOLDER="" 
+
 EXTRAS="" # add additional CLI parameters

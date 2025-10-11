@@ -146,6 +146,12 @@ for f in OVMF_VARS_4M.fd OVMF_CODE_4M.fd ; do
     fi
 done
 
+ninepfs=""
+# Check whether shared folder is requested and create 9pfs command line accordingly:
+if [ -n "$SHAREDFOLDER" -a -d "$SHAREDFOLDER" ] ; then
+    ninepfs="-virtfs local,path=${SHAREDFOLDER},mount_tag=shared,security_model=none"
+fi
+
 # Exit if neither the disk image exists nor the path to an installation ISO is specified:
 
 if [ -z "$WINISO" ] ; then
@@ -212,7 +218,7 @@ if [ -n "$WINISO" ] ; then
         -tpmdev emulator,id=tpm0,chardev=chrtpm \
         -boot d \
         -pidfile "${TARGETDIR}/qemu.pid" \
-        $NET $EXTRAS $DAEMONIZE \
+        $NET $EXTRAS $DAEMONIZE $ninepfs \
         -vnc "$VNC" \
         -usb -usbdevice tablet -k "$KEYBOARD"
         sleep 1
@@ -227,7 +233,7 @@ else
         -chardev socket,id=chrtpm,path="${TPMDIR}/swtpm.sock" \
         -tpmdev emulator,id=tpm0,chardev=chrtpm \
         -pidfile "${TARGETDIR}/qemu.pid" \
-        $NET $EXTRAS $DAEMONIZE \
+        $NET $EXTRAS $DAEMONIZE $ninepfs \
         -vnc "$VNC" \
         -usb -usbdevice tablet -k "$KEYBOARD"
 fi
