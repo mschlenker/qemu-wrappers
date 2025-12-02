@@ -17,6 +17,7 @@ CPUS=2
 MEM=4096
 # If you set VNC to an empty string, it will use a random port between 10 and 99
 VNC=""
+KEYBOARD="en-us" # Keyboard for VNC
 DAEMONIZE="-daemonize" # set to empty string to run in foreground
 
 # Networking parameters, simple:

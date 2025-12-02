@@ -195,7 +195,13 @@ fi
 if [ -z "$NET" -a -n "$TAPDEV" ] ; then
     NET="-device virtio-net-pci,netdev=net23,mac=${MAC} -netdev tap,id=net23,ifname=${TAPDEV},script=no,downscript=no"
 elif [ -z "$NET" ] ; then
-    NET="-net nic,model=e1000 -net user,hostfwd=tcp::8000-:80,hostfwd=tcp::2222-:22"
+    echo "No tap device found to connect to. Do you want me to start with user mode network?"
+    echo "NOTE: This is not tolerated in many organizations, since it might sent traffic to"
+    echo "your VPN. If you chose to continue, port 3389 will be made available as port 13389"
+    echo "on localhost, the Checkmk agent port as 16556."
+    echo "Press Ctrl+C to cancel, enter to continue."
+    read nix
+    NET="-net nic,model=e1000 -net user,hostfwd=tcp::13389-:3389,hostfwd=tcp::16556-:6556"
 fi
 
 # Start the soft TPM:
@@ -204,7 +210,7 @@ swtpm socket --tpm2 --tpmstate dir="${TPMDIR}" --ctrl type=unixio,path="${TPMDIR
 sleep 1
 
 if [ -n "$WINISO" ] ; then
-    # Run in installation mode:
+    # Run in installation mode, open the system console
     echo "Running in installation mode without networking and with drivers attached."
     echo "You will be connected to localhost${VNC} to finish installation. Then shutdown."
     echo "When done, start again without the ISO file as parameter."
@@ -218,11 +224,8 @@ if [ -n "$WINISO" ] ; then
         -tpmdev emulator,id=tpm0,chardev=chrtpm \
         -boot d \
         -pidfile "${TARGETDIR}/qemu.pid" \
-        $NET $EXTRAS $DAEMONIZE $ninepfs \
-        -vnc "$VNC" \
-        -usb -usbdevice tablet -k "$KEYBOARD"
-        sleep 1
-        remmina -c vnc://localhost"${VNC}"
+        $NET $EXTRAS $ninepfs \
+        -usb -usbdevice tablet
     exit 0
 else
     qemu-system-x86_64 -enable-kvm $CPU -smp cpus="$CPUS" -m "$MEM" \

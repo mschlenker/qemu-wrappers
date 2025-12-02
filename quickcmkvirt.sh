@@ -12,6 +12,7 @@ CPUS=2
 MEM=4096
 # If you set VNC to an empty string, it will use a random port between 10 and 99
 VNC=""
+KEYBOARD="en-us" # Keyboard for VNC
 DAEMONIZE="-daemonize" # set to empty string to run in foreground
 
 # Networking parameters, simple:
@@ -194,7 +195,13 @@ fi
 if [ -z "$NET" -a -n "$TAPDEV" ] ; then
     NET="-device virtio-net-pci,netdev=net23,mac=${MAC} -netdev tap,id=net23,ifname=${TAPDEV},script=no,downscript=no"
 elif [ -z "$NET" ] ; then
-    NET="-net nic,model=e1000 -net user,hostfwd=tcp::8000-:80,hostfwd=tcp::2222-:22"
+    echo "No tap device found to connect to. Do you want me to start with user mode network?"
+    echo "NOTE: This is not tolerated in many organizations, since it might sent traffic to"
+    echo "your VPN. If you chose to continue, port 22 will be made available as port 2222"
+    echo "on localhost, port 80 as 8080."
+    echo "Press Ctrl+C to cancel, enter to continue."
+    read nix
+     NET="-net nic,model=e1000 -net user,hostfwd=tcp::8000-:80,hostfwd=tcp::2222-:22"
 fi
 
 qemu-system-x86_64 -enable-kvm -smp cpus="$CPUS" -m "$MEM" \
@@ -204,7 +211,7 @@ qemu-system-x86_64 -enable-kvm -smp cpus="$CPUS" -m "$MEM" \
     -drive file="${TARGETDIR}/virt1-disk2.qcow2",if=virtio,format=qcow2 \
     -pidfile "${TARGETDIR}/qemu.pid" \
     $NET $DAEMONIZE $EXTRAS \
-    -vnc "$VNC"
+    -vnc "$VNC" -k "$KEYBOARD"
 
 retval="$?"
 if [ "$retval" -lt 1 ] ; then

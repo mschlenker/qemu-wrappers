@@ -21,6 +21,7 @@ HOSTNAME="cloud"
 CPUS=2
 MEM=4096
 VNC=":23"
+KEYBOARD="en-us" # Keyboard for VNC
 DAEMONIZE="-daemonize" # set to empty string to run in foreground
 LOGMEIN=1 # Login via SSH instead of showing the command to login
 
