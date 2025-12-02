@@ -306,7 +306,7 @@ qemu-system-x86_64 -enable-kvm -cpu host -smp cpus="$CPUS" -m "$MEM" \
     -drive file="${SEED}",index=1,media=cdrom,readonly=on \
     -pidfile "${TARGETDIR}/qemu.pid" \
     $NET $DAEMONIZE $EXTRAS $ninepfs \
-    -vnc "$VNC"=-k "$KEYBOARD"
+    -vnc "$VNC" -k "$KEYBOARD"
 
 retval="$?"
 if [ "$retval" -lt 1 ] ; then
