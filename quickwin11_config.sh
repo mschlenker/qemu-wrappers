@@ -18,6 +18,7 @@ CPUS=2
 MEM=4096
 # If you set VNC to an empty string, it will use a random port between 10 and 99
 VNC=""
+RDPUSER="" # If non empty, start Remmina with an RDP URL
 DAEMONIZE="-daemonize" # set to empty string to run in foreground
 KEYBOARD="en-us" # Keyboard for VNC
 CPU="-cpu host" # For maximum compatibility

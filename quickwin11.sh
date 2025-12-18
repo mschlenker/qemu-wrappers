@@ -19,6 +19,7 @@ CPUS=2
 MEM=4096
 # If you set VNC to an empty string, it will use a random port between 10 and 99
 VNC=""
+RDPUSER="" # If non empty, start Remmina with an RDP URL
 DAEMONIZE="-daemonize" # set to empty string to run in foreground
 KEYBOARD="en-us" # Keyboard for VNC
 CPU="-cpu host" # For maximum compatibility
@@ -211,9 +212,9 @@ sleep 1
 
 if [ -n "$WINISO" ] ; then
     # Run in installation mode, open the system console
-    echo "Running in installation mode without networking and with drivers attached."
-    echo "You will be connected to localhost${VNC} to finish installation. Then shutdown."
-    echo "When done, start again without the ISO file as parameter."
+    echo "Running in installation mode with drivers attached and connected console."
+    echo "Finish installation, then shutdown. When done, start again without the ISO"
+    echo "file as parameter."
     qemu-system-x86_64 -enable-kvm $CPU -smp cpus="$CPUS" -m "$MEM" \
         -drive file="${TARGETDIR}/OVMF_CODE_4M.fd",if=pflash,format=raw,readonly=on \
         -drive file="${TARGETDIR}/OVMF_VARS_4M.fd",if=pflash,format=raw \
@@ -257,10 +258,15 @@ if [ "$retval" -lt 1 ] ; then
             echo "Could not find IPv4 address, you might need to install the guest tools from"
             echo "E:/virtio-win-gt-x64.msi"
         else
-            echo "If you have configured RDP, you now should be able to access your Windows:"
-            echo ""
-            echo "    ${IPV4}"
-            echo ""
+            if [ -n "$RDPUSER" ] ; then
+                echo "Trying to launch Remmina for ${RDPUSER}@${IPV4}..."
+                remmina "rdp://${RDPUSER}@${IPV4}"
+            else
+                echo "If you have configured RDP, you now should be able to access your Windows:"
+                echo ""
+                echo "    ${IPV4}"
+                echo ""
+            fi
         fi
     fi
 else
