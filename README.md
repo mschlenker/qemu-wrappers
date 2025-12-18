@@ -143,11 +143,13 @@ After starting up, the script tries to read the MAC address specified from the a
     
     http://198.51.100.205/
 
-### quickwin10.sh
+### quickwin11.sh
 
-Install and run Windows 10 or Windows Server 2019 or similar in Qemu/KVM.
-This scripts works only for older Windows versions that can be booted via classic BIOS from MBR partitioned disks.
-The script has an "installation mode" without networking and a "run mode" with networking.
+Install and run Windows 11 or Windows Server 2019/2025 or similar in Qemu/KVM.
+This scripts works only for all modern Windows versions that can be booted on UEFI.
+A TPM v2 module is emulated for Windows versions that rely on it.
+
+The script has an "installation mode" and a "run mode", both with networking.
 Fedora virtio drivers are mounted as HTTP image (requires Qemu 8.2, for older versions, a local file can be specified).
 
 How to use:
@@ -155,10 +157,10 @@ How to use:
 1. Create a directory for the VM to live in
 1. Copy the configuration `quickwin10_config.sh` to the target directory and adjust according to your needs
 1. Start the VM as non-root user: `./quickwin10.sh /path/to/targetdir /path/to/win10.iso`
-1. Make sure to select the virtio disk drivers from E:/amd64
+1. Make sure to select the virtio disk drivers from `E:/amd64` before starting the installation
 1. Finish the installation, then shutdown: `shutdown.exe /s /t 0`
 1. Start again without specifying the ISO: `./quickcmkvirt.sh /path/to/targetdir`
-1. Install the guest tools from E:/virtio-win-gt-x64.msi
+1. Install the guest tools from `E:/virtio-win-gt-x64.msi`
 1. Enable RDP access
 
 After starting up, the script tries to read the MAC address specified from the arp cache and retrieve its IP address:
@@ -173,10 +175,10 @@ After starting up, the script tries to read the MAC address specified from the a
     
     198.51.100.105
 
-### quickwin11.sh
+### quickwin10.sh
 
-Have a look at the script and choose wisely whether you want to use it.
-Tested with Windows Server 2025.
+Legacy script for Windows systems that boot from MBR partitioned devices and do not need TPM.
+The script has an "installation mode" without networking and a "run mode" with networking.
 
 ## TODO
 
