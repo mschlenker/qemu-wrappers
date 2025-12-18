@@ -194,7 +194,7 @@ if [ -n "$INSTALLISO" ] ; then
         -drive media=cdrom,index=1,file="${INSTALLISO}",readonly=on \
         -boot d \
         -pidfile "${TARGETDIR}/qemu.pid" \
-        $CPU $NET $EXTRAS \
+        $CPU $NET $EXTRAS
         exit 0
 else
     qemu-system-x86_64 -enable-kvm -smp cpus="$CPUS" -m "$MEM" \
