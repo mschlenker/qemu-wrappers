@@ -6,6 +6,12 @@
 
 # Script to run Ubuntu and Debian cloud-init images in vanilla Qemu/KVM.
 
+# These two parameters are used for caching images, you probably want to set them rather as
+# environment variables:
+
+# QCCACHEDIR="/data/VM/cloudcache"
+# QCCACHEDURATION="240" # Maximum number of hours to cache
+
 # Parameters for setting up the image:
 
 DISTRO="ubuntu" # Currently must be one of almalinux/debian/rocky/ubuntu
@@ -198,6 +204,7 @@ if [ -f "${TARGETDIR}/disk.qcow2" ] ; then
 else
     case $DISTRO in
         almalinux)
+            FNAME="AlmaLinux-${VERSION}-GenericCloud-latest.x86_64.qcow2"
             URL="https://repo.almalinux.org/almalinux/${VERSION}/cloud/x86_64/images/AlmaLinux-${VERSION}-GenericCloud-latest.x86_64.qcow2"
         ;;
         debian)
@@ -205,12 +212,15 @@ else
             [ "$VERSION" = "trixie" ] && NUM=13
             [ "$VERSION" = "bookworm" ] && NUM=12
             [ "$VERSION" = "bullseye" ] && NUM=11
+            FNAME="debian-${NUM}-generic-amd64.qcow2"
             URL="https://cdimage.debian.org/images/cloud/${VERSION}/latest/debian-${NUM}-generic-amd64.qcow2"
         ;;
         rocky)
+            FNAME="Rocky-${VERSION}-GenericCloud-Base.latest.x86_64.qcow2"
             URL="http://dl.rockylinux.org/pub/rocky/${VERSION}/images/x86_64/Rocky-${VERSION}-GenericCloud-Base.latest.x86_64.qcow2"
         ;;
         ubuntu)
+            FNAME="ubuntu-${VERSION}-server-cloudimg-amd64.img"
             URL="https://cloud-images.ubuntu.com/${VERSION}/current/${VERSION}-server-cloudimg-amd64.img"
         ;;
         *)
@@ -219,7 +229,22 @@ else
             exit 1
         ;;
     esac
-    wget -O "${TARGETDIR}/disk.qcow2" "$URL"
+    if [ -n "$QCCACHEDIR" -a -d "$QCCACHEDIR" -a -n "$QCCACHEDURATION" ] && [ "$QCCACHEDURATION" -gt 0 ] ; then
+        if [ -f "${QCCACHEDIR}/${FNAME}" ] ; then
+            FTSTMP=$(  stat --format='%Y' "${QCCACHEDIR}/${FNAME}" )
+            TNOW=$( date +%s )
+            TDELTA=$(( $TNOW - $FTSTMP ))
+            MAXDELTA=$(( $QCCACHEDURATION * 3600 ))
+            if [ $TDELTA -gt $MAXDELTA ] ; then
+                wget -O "${QCCACHEDIR}/${FNAME}" "$URL"
+            fi
+        else
+            wget -O "${QCCACHEDIR}/${FNAME}" "$URL"
+        fi
+        rsync -avHP --inplace "${QCCACHEDIR}/${FNAME}" "${TARGETDIR}/disk.qcow2"
+    else
+        wget -O "${TARGETDIR}/disk.qcow2" "$URL"
+    fi
     if [ "$?" -gt 0 ] ; then
         rm -f "${TARGETDIR}/disk.qcow2"
         echo "Download of ${URL} failed. Please check."
