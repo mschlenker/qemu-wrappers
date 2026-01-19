@@ -236,10 +236,10 @@ else
             TDELTA=$(( $TNOW - $FTSTMP ))
             MAXDELTA=$(( $QCCACHEDURATION * 3600 ))
             if [ $TDELTA -gt $MAXDELTA ] ; then
-                wget -O "${QCCACHEDIR}/${FNAME}" "$URL"
+                wget -O "${QCCACHEDIR}/${FNAME}" "$URL" && touch "${QCCACHEDIR}/${FNAME}"
             fi
         else
-            wget -O "${QCCACHEDIR}/${FNAME}" "$URL"
+            wget -O "${QCCACHEDIR}/${FNAME}" "$URL" && touch "${QCCACHEDIR}/${FNAME}"
         fi
         rsync -avHP --inplace "${QCCACHEDIR}/${FNAME}" "${TARGETDIR}/disk.qcow2"
     else
