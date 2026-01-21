@@ -12,6 +12,13 @@ DUMMY="vmdummy0"
 BRIDGE="vmbridge0"
 TAPRANGE="0 9"
 
+# Can also be overwritten by setting the environment variables:
+# DUMMY_VIP, DUMMY_VNET and DUMMY_TAPRANGE
+
+[ -n "$DUMMY_VIP" ]      && VIP="$DUMMY_VIP"
+[ -n "$DUMMY_VNET" ]     && VNET="$DUMMY_VNET"
+[ -n "$DUMMY_TAPRANGE" ] && TAPRANGE="$DUMMY_TAPRANGE"
+
 # The config file also can contain entries for WIFI/ETH interfaces.
 # Separate them using whitespace
 # PHYIFACES="wlp114s0 enp0s31f6 enbx00decafbad00"
