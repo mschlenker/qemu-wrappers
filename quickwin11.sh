@@ -100,8 +100,8 @@ if [ -f "${TARGETDIR}" ] ; then
     echo "cfg dir: $TARGETDIR"
 fi
 
-if [ -z "$CFG" -a -f "${TARGETDIR}/quickwin10_config.sh" ] ; then
-    CFG="quickwin10_config.sh"
+if [ -z "$CFG" -a -f "${TARGETDIR}/quickwin11_config.sh" ] ; then
+    CFG="quickwin11_config.sh"
 elif [ -z "$CFG" -a -f "${TARGETDIR}/config.sh" ] ; then
     CFG="config.sh"
 fi
