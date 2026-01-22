@@ -191,6 +191,30 @@ if [ -z "$SEED" ] ; then
                 echo "  - omd start $CMKSITE" >> "${TARGETDIR}/.seed/user-data"
                 echo "  - systemctl restart apache2" >> "${TARGETDIR}/.seed/user-data"
             fi
+        elif [ "$DISTRO" = rocky -o "$DISTRO" = almalinux ] && [ -n "$RPM" ] ; then
+            # Add the update command:
+            echo 'package_update: true' >> "${TARGETDIR}/.seed/user-data"
+            echo 'package_upgrade: true' >> "${TARGETDIR}/.seed/user-data"
+            # Download the rpm:
+            mkdir "${TARGETDIR}/.seed/sw"
+            if [ -f "$RPM" ] ; then
+                cp -v "$RPM" "${TARGETDIR}/.seed/sw/rpm.rpm"
+            else
+                wget -O "${TARGETDIR}/.seed/sw/rpm.rpm" "$RPM"
+            fi
+            echo 'runcmd:' >> "${TARGETDIR}/.seed/user-data"
+            echo '  - mkdir /media/sw' >> "${TARGETDIR}/.seed/user-data"
+            echo '  - mount /dev/sr0 /media/sw' >> "${TARGETDIR}/.seed/user-data"
+            echo '  - yum localinstall -y /media/sw/sw/rpm.rpm > /run/install.log' >> "${TARGETDIR}/.seed/user-data"
+            echo '  - echo Done. >> /run/install.log' >> "${TARGETDIR}/.seed/user-data"
+            echo '  - umount /media/sw' >> "${TARGETDIR}/.seed/user-data"
+            echo '  - rmdir /media/sw' >> "${TARGETDIR}/.seed/user-data"
+            # This is Checkmk specific stuff:
+            if [ -n "$CMKSITE" -a -n "$CMKPASS" ] ; then
+                echo "  - omd create --admin-password '$CMKPASS' $CMKSITE" >> "${TARGETDIR}/.seed/user-data"
+                echo "  - omd start $CMKSITE" >> "${TARGETDIR}/.seed/user-data"
+                echo "  - systemctl restart httpd" >> "${TARGETDIR}/.seed/user-data"
+            fi
         fi
         xorriso -as mkisofs -joliet -V CIDATA -o "${TARGETDIR}/seed.iso" -r "${TARGETDIR}/.seed"
     fi
