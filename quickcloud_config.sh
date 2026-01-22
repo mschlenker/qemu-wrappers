@@ -13,6 +13,11 @@ VERSION="noble" # Can be any supported, names (lower case) for debian/ubuntu, nu
 SSHKEYS="/home/${USER}/.ssh/id_ed25519.pub"
 RESIZE=32 # Resize to 32 G
 HOSTNAME="cloud"
+
+# Run an update of the package index but do not upgrade packages yet:
+UPDATE=1
+UPGRADE=0
+
 # Do not generate a seed image, instead use an existing one
 # SEED="/path/to/some/seed.iso"
 

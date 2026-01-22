@@ -19,6 +19,11 @@ VERSION="noble" # Can be any supported, names (lower case) for debian/ubuntu, nu
 SSHKEYS="/home/${USER}/.ssh/id_ed25519.pub"
 RESIZE=32 # Resize to 32 G
 HOSTNAME="cloud"
+
+# Run an update of the package index but do not upgrade packages yet:
+UPDATE=1
+UPGRADE=0
+
 # Do not generate a seed image, instead use an existing one
 # SEED="/path/to/some/seed.iso"
 
@@ -215,6 +220,9 @@ if [ -z "$SEED" ] ; then
                 echo "  - omd start $CMKSITE" >> "${TARGETDIR}/.seed/user-data"
                 echo "  - systemctl restart httpd" >> "${TARGETDIR}/.seed/user-data"
             fi
+        elif [ "$UPDATE" -gt 0 ] ; then
+            echo 'package_update: true' >> "${TARGETDIR}/.seed/user-data"
+            [ "$UPGRADE" -gt 0 ] && echo 'package_upgrade: true' >> "${TARGETDIR}/.seed/user-data"
         fi
         xorriso -as mkisofs -joliet -V CIDATA -o "${TARGETDIR}/seed.iso" -r "${TARGETDIR}/.seed"
     fi
