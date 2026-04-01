@@ -110,7 +110,7 @@ if [ -f "${TARGETDIR}/${CFG}" ] ; then
     echo "Found config: ${TARGETDIR}/${CFG}, sourcing it..."
     . "${TARGETDIR}/${CFG}"
 else
-    echo "Could not find configuration file, please copy quickwin10_config.sh to the"
+    echo "Could not find configuration file, please copy quickwin11_config.sh to the"
     echo "target directory, adjust it and try again."
     exit 1
 fi
