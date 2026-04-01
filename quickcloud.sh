@@ -255,8 +255,12 @@ else
             FNAME="ubuntu-${VERSION}-server-cloudimg-amd64.img"
             URL="https://cloud-images.ubuntu.com/${VERSION}/current/${VERSION}-server-cloudimg-amd64.img"
         ;;
+        freebsd)
+            FNAME="FreeBSD-${VERSION}-RELEASE-amd64-BASIC-CLOUDINIT-ufs.qcow2.xz"
+            URL="https://download.freebsd.org/releases/VM-IMAGES/${VERSION}-RELEASE/amd64/Latest/FreeBSD-${VERSION}-RELEASE-amd64-BASIC-CLOUDINIT-ufs.qcow2.xz"
+        ;;
         *)
-            echo "Unsupported distro ${DISTRO}. Allowed: almalinux, debian, rocky, ubuntu."
+            echo "Unsupported distro ${DISTRO}. Allowed: almalinux, debian, rocky, ubuntu or freebsd (OK, this is no distro...)."
             echo "Exiting."
             exit 1
         ;;
@@ -273,9 +277,24 @@ else
         else
             wget -O "${QCCACHEDIR}/${FNAME}" "$URL" && touch "${QCCACHEDIR}/${FNAME}"
         fi
-        rsync -avHP --inplace "${QCCACHEDIR}/${FNAME}" "${TARGETDIR}/disk.qcow2"
+        case $DISTRO in
+            freebsd)
+                echo "Decompressing ${QCCACHEDIR}/${FNAME} to ${TARGETDIR}/disk.qcow2"
+                xz --decompress --stdout "${QCCACHEDIR}/${FNAME}" > "${TARGETDIR}/disk.qcow2"
+            ;;
+            *)
+                rsync -avHP --inplace "${QCCACHEDIR}/${FNAME}" "${TARGETDIR}/disk.qcow2"
+            ;;
+        esac
     else
-        wget -O "${TARGETDIR}/disk.qcow2" "$URL"
+        case $DISTRO in
+            freebsd)
+                wget -O - "$URL" | xz --decompress --stdout > "${TARGETDIR}/disk.qcow2" 
+            ;;
+            *)
+                wget -O "${TARGETDIR}/disk.qcow2" "$URL"
+            ;;
+        esac
     fi
     if [ "$?" -gt 0 ] ; then
         rm -f "${TARGETDIR}/disk.qcow2"
@@ -339,7 +358,8 @@ SKIPARP=0
 
 # Calculate a MAC address from the target directory if none has been given:
 if [ -z "$MAC" ] ; then
-    MAC="00:08:25:"`echo "$TARGETDIR" | md5sum | awk -F '' '{print $1$2":"$3$4":"$5$6}'`
+    MACTGT=` realpath "${TARGETDIR}"` 
+    MAC="00:08:25:"`echo "$MACTGT" | md5sum | awk -F '' '{print $1$2":"$3$4":"$5$6}'`
     echo "MAC=\"$MAC\"" >> "${TARGETDIR}/${CFG}"
 fi
 
@@ -382,7 +402,7 @@ if [ "$retval" -lt 1 ] ; then
         elif [ "$LOGMEIN" -gt 0 ] ; then
             echo "Trying to log in... ${DISTRO}@${IPV4}"
             echo ""
-            ssh "${DISTRO}@${IPV4}"
+            ssh ${SSHEXTRAS} "${DISTRO}@${IPV4}"
         else
             echo "You should now be able to run"
             echo ""
@@ -394,7 +414,7 @@ elif [ -n "$MAC" -a "$SKIPARP" -lt 1 -a "$LOGMEIN" -gt 0 ] ; then
     IPV4=` ip n | grep "${MAC}" | awk '{print $1}'` 
     if [ -n "$IPV4" ] && ping -c 1 "$IPV4" ; then
         echo ""
-        exec ssh "${DISTRO}@${IPV4}"
+        exec ssh ${SSHEXTRAS} "${DISTRO}@${IPV4}"
     else
         echo ""
         echo "Ooopsi."
