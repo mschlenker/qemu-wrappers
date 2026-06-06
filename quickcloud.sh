@@ -15,7 +15,7 @@
 # Parameters for setting up the image:
 
 DISTRO="ubuntu" # Currently must be one of almalinux/debian/rocky/ubuntu
-VERSION="noble" # Can be any supported, names (lower case) for debian/ubuntu, numbers for almalinux/rocky
+VERSION="noble" # Can be any supported, names (lower case) for debian/ubuntu, numbers for almalinux/rocky/opensuse
 SSHKEYS="/home/${USER}/.ssh/id_ed25519.pub"
 RESIZE=32 # Resize to 32 G
 HOSTNAME="cloud"
@@ -259,8 +259,13 @@ else
             FNAME="FreeBSD-${VERSION}-RELEASE-amd64-BASIC-CLOUDINIT-ufs.qcow2.xz"
             URL="https://download.freebsd.org/releases/VM-IMAGES/${VERSION}-RELEASE/amd64/Latest/FreeBSD-${VERSION}-RELEASE-amd64-BASIC-CLOUDINIT-ufs.qcow2.xz"
         ;;
+        opensuse)
+            # https://download.opensuse.org/distribution/leap/16.0/appliances/Leap-16.0-Minimal-VM.x86_64-Cloud.qcow2
+            FNAME="Leap-${VERSION}-Minimal-VM.x86_64-Cloud.qcow2"
+            URL="https://download.opensuse.org/distribution/leap/${VERSION}/appliances/Leap-${VERSION}-Minimal-VM.x86_64-Cloud.qcow2"
+        ;;
         *)
-            echo "Unsupported distro ${DISTRO}. Allowed: almalinux, debian, rocky, ubuntu or freebsd (OK, this is no distro...)."
+            echo "Unsupported distro ${DISTRO}. Allowed: almalinux, debian, rocky, ubuntu, freebsd (OK, this is no distro...) or opensuse."
             echo "Exiting."
             exit 1
         ;;
@@ -386,6 +391,8 @@ qemu-system-x86_64 -enable-kvm -cpu host -smp cpus="$CPUS" -m "$MEM" \
     -vnc "$VNC" -k "$KEYBOARD"
 
 retval="$?"
+login="$DISTRO"
+[ "$DISTRO" = opensuse ] && login=sles
 if [ "$retval" -lt 1 ] ; then
     echo "Successfully started, use"
     echo ""
@@ -400,13 +407,13 @@ if [ "$retval" -lt 1 ] ; then
         if [ -z "$IPV4" ] ; then
             echo "Could not find IPv4 address, you might need to adjust the network configuration in the console."
         elif [ "$LOGMEIN" -gt 0 ] ; then
-            echo "Trying to log in... ${DISTRO}@${IPV4}"
+            echo "Trying to log in... ${login}@${IPV4}"
             echo ""
-            ssh ${SSHEXTRAS} "${DISTRO}@${IPV4}"
+            ssh ${SSHEXTRAS} "${login}@${IPV4}"
         else
             echo "You should now be able to run"
             echo ""
-            echo "    ssh ${DISTRO}@${IPV4}"
+            echo "    ssh ${login}@${IPV4}"
             echo ""
         fi
     fi
@@ -414,7 +421,7 @@ elif [ -n "$MAC" -a "$SKIPARP" -lt 1 -a "$LOGMEIN" -gt 0 ] ; then
     IPV4=` ip n | grep "${MAC}" | awk '{print $1}'` 
     if [ -n "$IPV4" ] && ping -c 1 "$IPV4" ; then
         echo ""
-        exec ssh ${SSHEXTRAS} "${DISTRO}@${IPV4}"
+        exec ssh ${SSHEXTRAS} "${login}@${IPV4}"
     else
         echo ""
         echo "Ooopsi."
